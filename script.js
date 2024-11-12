@@ -5,17 +5,20 @@ let num2;
 let currentValue = "";
 
 // === Display Handling ===
-const display = document.getElementById("display");
+const display = document.getElementById("current");
 const historyDisplay = document.getElementById("history");
-const currentDisplay = document.getElementById("current");
 
 // Function to update the main display (current value)
 function updateDisplay(value) {
-  currentDisplay.textContent = value;
+  display.textContent = value;
 }
 
 // Function to update the history display (numbers and operators in grey)
 function updateHistory(value) {
+  const maxLength = 6; // Set maximum length for the history display
+  if (value.length > maxLength) {
+    value = "..." + value.slice(value.length - maxLength); // Truncate older entries
+  }
   historyDisplay.textContent = value;
 }
 
@@ -72,23 +75,31 @@ function handleDigitClick(digit) {
 }
 
 // Function to handle operator button clicks
+// Function to handle operator button clicks
 function handleOperatorClick(op) {
-  if (currentValue === "") return; // Prevent operator without number
-  if (num1 === undefined) {
-    num1 = parseFloat(currentValue);
-  } else if (num2 === undefined) {
-    num2 = parseFloat(currentValue);
-  }
-  operator = op;
+  // Case 1: If there's no number input yet, ignore operator click
+  if (currentValue === "" && num1 === undefined) return;
 
-  // Update history with operator (only if there is a previous number)
-  if (num1 !== undefined) {
-    updateHistory(`${historyDisplay.textContent} ${op} `); // Add operator to history
-    currentValue = ""; // Clear current value for next input
+  // Case 2: If we already have an operator and both num1 and num2, perform the operation
+  if (num1 !== undefined && operator && currentValue !== "") {
+    num2 = parseFloat(currentValue);
+    const result = operate(operator, num1, num2);
+    updateDisplay(result);
+
+    // Set the result as num1 for chaining operations
+    num1 = result;
+    currentValue = ""; // Clear currentValue for next input
+  } else if (num1 === undefined) {
+    // If num1 is not set, parse the currentValue as num1
+    num1 = parseFloat(currentValue);
+    currentValue = ""; // Clear currentValue for next input
   }
+
+  // Set the new operator for the next calculation
+  operator = op;
+  updateHistory(`${historyDisplay.textContent} ${op} `);
 }
 
-// Function to handle equals button click
 // Function to handle equals button click
 function handleEqualsClick() {
   if (num1 !== undefined && operator && currentValue !== "") {
@@ -96,14 +107,10 @@ function handleEqualsClick() {
     const result = operate(operator, num1, num2);
     updateDisplay(result);
 
-    // Reset history after calculation
-    historyDisplay.textContent = ""; // Clear the history after displaying result
-
-    // Prepare for the next calculation
+    // Store the result for the next calculation and reset only num2 and currentValue
     num1 = result;
-    num2 = undefined;
-    operator = undefined;
-    currentValue = "";
+    operator = undefined; // Reset operator for the next input
+    currentValue = ""; // Clear current value for the next input
   }
 }
 
@@ -117,7 +124,7 @@ function handleClearClick() {
   updateHistory(""); // Clear history display
 }
 
-//
+// Function to handle delete button click
 function handleDeleteClick() {
   // Remove the last character from the current value
   currentValue = currentValue.slice(0, -1);
@@ -137,9 +144,10 @@ function handleDeleteClick() {
 
 // === Event Listeners ===
 
-// event listener for the delete button (X)
+// Event listener for the delete button (X)
 document.getElementById("delete").addEventListener("click", handleDeleteClick);
 
+// Event listeners for all buttons
 document.querySelectorAll(".btn").forEach((button) => {
   button.addEventListener("click", () => {
     const buttonText = button.textContent;
