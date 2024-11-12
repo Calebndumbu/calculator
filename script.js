@@ -34,3 +34,32 @@ function operate(operator, num1, num2) {
     return "Error: Invalid operator";
   }
 }
+
+//get the display element
+
+const display = document.getElementById("display");
+
+//variable to store the current value on the display
+let currentvalue = "";
+
+//function to update the display with the current value
+function updateDisplay(value) {
+  display.textContent = value;
+}
+
+//function to handle digit clicks
+function handleDigitClick(digit) {
+  currentvalue += digit;
+  updateDisplay(currentvalue);
+}
+//add event listeners to all digit buttons
+const digitButtons = document.querySelectorAll(".btn");
+
+digitButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const buttonText = button.textContent;
+    if (buttonText >= "0" && buttonText <= "9") {
+      handleDigitClick(buttonText);
+    }
+  });
+});
