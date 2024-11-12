@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Calculator</title>
+    <title>Charmer Calc</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -12,9 +12,16 @@
         <div class="history" id="history">0</div>
         <div class="current" id="current">0</div>
       </div>
-      <div class="buttons">
+
+      <!-- Top buttons (Charmer, Clear, Delete) -->
+      <div class="top-buttons">
+        <span class="name">Charmer</span>
         <button class="btn" id="clear">C</button>
-        <button class="btn" id="delete">X</button>
+        <button class="btn red" id="delete">X</button>
+      </div>
+
+      <!-- Main calculator buttons -->
+      <div class="buttons">
         <button class="btn">7</button>
         <button class="btn">8</button>
         <button class="btn">9</button>
@@ -28,8 +35,9 @@
         <button class="btn">3</button>
         <button class="btn">0</button>
         <button class="btn">.</button>
-        <button class="btn">=</button>
         <button class="btn">+</button>
+        <button class="btn">-</button>
+        <button class="btn">=</button>
       </div>
     </div>
     <script type="module" src="script.js"></script>
