@@ -117,7 +117,29 @@ function handleClearClick() {
   updateHistory(""); // Clear history display
 }
 
+//
+function handleDeleteClick() {
+  // Remove the last character from the current value
+  currentValue = currentValue.slice(0, -1);
+
+  // If the current value becomes empty, set it to "0"
+  if (currentValue === "") {
+    currentValue = "0";
+  }
+
+  updateDisplay(currentValue);
+
+  // Update the history display
+  if (historyDisplay.textContent !== "0" && historyDisplay.textContent !== "") {
+    historyDisplay.textContent = historyDisplay.textContent.slice(0, -1);
+  }
+}
+
 // === Event Listeners ===
+
+// event listener for the delete button (X)
+document.getElementById("delete").addEventListener("click", handleDeleteClick);
+
 document.querySelectorAll(".btn").forEach((button) => {
   button.addEventListener("click", () => {
     const buttonText = button.textContent;
