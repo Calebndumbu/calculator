@@ -142,11 +142,6 @@ function handleDeleteClick() {
   }
 }
 
-// === Event Listeners ===
-
-// Event listener for the delete button (X)
-document.getElementById("delete").addEventListener("click", handleDeleteClick);
-
 // Event listeners for all buttons
 document.querySelectorAll(".btn").forEach((button) => {
   button.addEventListener("click", () => {
@@ -160,6 +155,26 @@ document.querySelectorAll(".btn").forEach((button) => {
       handleEqualsClick();
     } else if (buttonText === "C") {
       handleClearClick();
+    } else if (buttonText === "X") {
+      handleDeleteClick();
     }
   });
+});
+
+document.addEventListener("keydown", (event) => {
+  const key = event.key;
+
+  if (key >= "0" && key <= "9") {
+    handleDigitClick(key);
+  } else if (["+", "-", "*", "/"].includes(key)) {
+    handleOperatorClick(key);
+  } else if (key === "Escape") {
+    handleClearClick();
+  } else if (key === "Backspace") {
+    handleDeleteClick();
+  }
+
+  if (key === "Enter") {
+    handleEqualsClick();
+  }
 });
