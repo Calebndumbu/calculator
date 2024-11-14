@@ -72,15 +72,25 @@ function handleDigitClick(digit) {
     lastInputWasOperator = false;
     return;
   }
-  if (currentValue === "0" && digit !== ".") currentValue = "";
-  if (digit === "." && isDecimal) return;
+
+  // Prevent leading zeros, except when starting a decimal number (like "0.")
+  if (currentValue === "0" && digit !== ".") {
+    currentValue = ""; // Clear the leading zero
+  }
+
+  if (digit === "." && isDecimal) return; // Prevent multiple decimals
   if (digit === ".") isDecimal = true;
 
   currentValue += digit;
   updateDisplay(currentValue);
-  updateHistory(historyDisplay.textContent + digit);
+  updateHistory(formatHistoryValue(historyDisplay.textContent + digit));
   lastInputWasOperator = false;
   lastButtonWasEquals = false;
+}
+
+function formatHistoryValue(value) {
+  // Remove leading zeros unless followed by a decimal point
+  return value.replace(/\b0+(?!\.|$)/g, "");
 }
 
 function handleEqualsClick() {
@@ -149,7 +159,7 @@ function handleOperatorClick(op) {
   operator = op;
   currentValue = "";
   isDecimal = false;
-  updateHistory(`${historyDisplay.textContent} ${op} `);
+  updateHistory(formatHistoryValue(`${historyDisplay.textContent} ${op} `));
   awaitingNegativeOperand = false;
   lastInputWasOperator = true;
   lastButtonWasEquals = false;
@@ -230,7 +240,7 @@ document.addEventListener("keydown", (event) => {
   } else if (["+", "-", "*", "/"].includes(key)) {
     if (calculationComplete) {
       calculationComplete = false;
-      num1 = parseFloat(currentValue);
+      num2 = parseFloat(currentValue);
     }
     handleOperatorClick(key);
   } else if (key === "Enter") {
