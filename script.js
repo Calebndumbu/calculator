@@ -254,6 +254,7 @@ document.addEventListener("keydown", (event) => {
     }
     handleOperatorClick(key);
   } else if (key === "Enter") {
+    event.preventDefault();
     handleEqualsClick();
   } else if (key === "Escape") {
     handleClearClick();
