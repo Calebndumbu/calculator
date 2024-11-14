@@ -135,6 +135,9 @@ let consecutiveMinusCount = 0; // Track consecutive "-" entries after an operato
 let isStartingNegative = false; // Track if calculation starts with a negative number
 
 function handleOperatorClick(op) {
+  if (currentValue.slice(-1) === ".") {
+    return; // Ignore the operator if it follows a decimal
+  }
   // Allow "-" as the first input to denote a negative starting number
   if (op === "-" && !num1 && !currentValue) {
     if (consecutiveMinusCount < 1) {
