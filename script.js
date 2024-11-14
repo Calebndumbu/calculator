@@ -14,8 +14,12 @@ const display = document.getElementById("current");
 const historyDisplay = document.getElementById("history");
 
 function updateDisplay(value) {
-  display.textContent =
-    typeof value === "number" ? parseFloat(value.toFixed(4)) : value;
+  const displayText =
+    typeof value === "number"
+      ? parseFloat(value.toFixed(4)).toString().slice(0, 18)
+      : value;
+
+  display.textContent = displayText;
 }
 
 function updateHistory(value) {
@@ -63,6 +67,10 @@ function operate(operator, num1, num2) {
 function handleDigitClick(digit) {
   if (calculationComplete) {
     resetForNextCalculation();
+  }
+
+  if (currentValue.length >= 18) {
+    return;
   }
   if (awaitingNegativeOperand && digit === "-") {
     currentValue = "-";
@@ -114,6 +122,8 @@ function handleEqualsClick() {
     currentValue = "";
     num2 = undefined;
     calculationComplete = true;
+  } else if (currentValue !== "" || num1 !== undefined) {
+    updateDisplay(currentValue || num1);
   } else {
     updateDisplay("Error");
     resetForNextCalculation();
