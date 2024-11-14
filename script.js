@@ -132,15 +132,30 @@ function handleEqualsClick() {
   lastButtonWasEquals = true;
 }
 let consecutiveMinusCount = 0; // Track consecutive "-" entries after an operator
+let isStartingNegative = false; // Track if calculation starts with a negative number
 
 function handleOperatorClick(op) {
-  // If "-" is the first input, treat it as a negative sign for num1
+  // Allow "-" as the first input to denote a negative starting number
   if (op === "-" && !num1 && !currentValue) {
-    currentValue = "-";
-    updateDisplay(currentValue);
-    updateHistory(historyDisplay.textContent + op);
-    lastInputWasOperator = false;
-    return;
+    if (consecutiveMinusCount < 1) {
+      consecutiveMinusCount++;
+      currentValue = "-";
+      updateDisplay(currentValue);
+      updateHistory(historyDisplay.textContent + op);
+      lastInputWasOperator = true;
+      return;
+    } else {
+      return;
+    }
+  }
+
+  // Prevent "+" or any operator other than "-" from starting the calculation
+  if (
+    (op === "+" || op === "*" || op === "/") &&
+    !num1 &&
+    (!currentValue || currentValue === "-")
+  ) {
+    return; // Ignore "+" or other operators if it’s the first input
   }
 
   // Allow up to two "-" characters in a row after an operator for cases like "8 * --6"
@@ -163,7 +178,17 @@ function handleOperatorClick(op) {
     consecutiveMinusCount = 0;
   }
 
-  // If an operator is clicked right after another, replace the previous one
+  // Special case: If the calculation started with "-" and another operator is entered
+  if (isStartingNegative && lastInputWasOperator && currentValue === "-") {
+    if (op === "+" || op === "*" || op === "/") {
+      operator = op;
+      lastInputWasOperator = true;
+      isStartingNegative = false; // Reset the starting negative flag after setting the operator
+      return; // Skip updating the history to prevent it from showing the new operator
+    }
+  }
+
+  // General case: If an operator is clicked right after another, replace the previous one
   if (lastInputWasOperator) {
     operator = op;
     historyDisplay.textContent =
@@ -177,6 +202,7 @@ function handleOperatorClick(op) {
     calculationComplete = false;
     currentValue = "";
     consecutiveMinusCount = 0;
+    isStartingNegative = false;
   }
 
   // Process the current input if available
@@ -199,7 +225,12 @@ function handleOperatorClick(op) {
   operator = op;
   currentValue = "";
   isDecimal = false;
-  updateHistory(formatHistoryValue(`${historyDisplay.textContent} ${op} `));
+
+  // Only update history if we are not handling the special starting negative case
+  if (!(isStartingNegative && currentValue === "-")) {
+    updateHistory(formatHistoryValue(`${historyDisplay.textContent} ${op} `));
+  }
+
   awaitingNegativeOperand = false;
   lastInputWasOperator = true;
   lastButtonWasEquals = false;
@@ -213,6 +244,8 @@ function resetForNextCalculation() {
   awaitingNegativeOperand = false;
   calculationComplete = false;
   lastButtonWasEquals = false;
+  isStartingNegative = false; // Reset starting negative flag
+  consecutiveMinusCount = 0; // Reset consecutive minus count
 }
 
 // Reset Functionality
@@ -227,6 +260,8 @@ function handleClearClick() {
   updateDisplay("0");
   updateHistory("");
   lastButtonWasEquals = false;
+  isStartingNegative = false; // Reset starting negative flag
+  consecutiveMinusCount = 0; // Reset consecutive minus count
 }
 
 function handleDeleteClick() {
