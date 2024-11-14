@@ -153,7 +153,7 @@ function handleOperatorClick(op) {
   if (
     (op === "+" || op === "*" || op === "/") &&
     !num1 &&
-    (!currentValue || currentValue === "-")
+    (!currentValue || currentValue === "-" || currentValue === ".")
   ) {
     return; // Ignore "+" or other operators if it’s the first input
   }
