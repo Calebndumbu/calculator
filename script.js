@@ -131,10 +131,11 @@ function handleEqualsClick() {
   lastInputWasOperator = false;
   lastButtonWasEquals = true;
 }
+let consecutiveMinusCount = 0; // Track consecutive "-" entries after an operator
 
 function handleOperatorClick(op) {
-  // If the input is a "-" and follows an operator (for negative numbers)
-  if (op === "-" && lastInputWasOperator && !currentValue) {
+  // If "-" is the first input, treat it as a negative sign for num1
+  if (op === "-" && !num1 && !currentValue) {
     currentValue = "-";
     updateDisplay(currentValue);
     updateHistory(historyDisplay.textContent + op);
@@ -142,29 +143,40 @@ function handleOperatorClick(op) {
     return;
   }
 
-  // Prevent entering more than two consecutive operators
-  if (lastInputWasOperator) {
-    // Allow one additional operator only if it's "-" and the previous one was * or /
-    if ((operator === "*" || operator === "/") && op === "-") {
-      currentValue = "-";
+  // Allow up to two "-" characters in a row after an operator for cases like "8 * --6"
+  if (op === "-" && lastInputWasOperator) {
+    if (consecutiveMinusCount < 1) {
+      consecutiveMinusCount++;
+      currentValue += "-";
       updateDisplay(currentValue);
       updateHistory(historyDisplay.textContent + op);
-      lastInputWasOperator = false;
+      lastInputWasOperator = true;
       return;
     } else {
-      // Replace the previous operator if more than two operators are attempted
-      operator = op;
-      historyDisplay.textContent =
-        historyDisplay.textContent.slice(0, -2) + ` ${op} `;
+      // Prevent more than two "-" in a row after an operator
       return;
     }
   }
 
-  // Reset if calculation was completed
+  // Reset consecutive "-" count when a different operator is clicked
+  if (op !== "-") {
+    consecutiveMinusCount = 0;
+  }
+
+  // If an operator is clicked right after another, replace the previous one
+  if (lastInputWasOperator) {
+    operator = op;
+    historyDisplay.textContent =
+      historyDisplay.textContent.slice(0, -2) + ` ${op} `;
+    return;
+  }
+
+  // Reset if a calculation was completed
   if (calculationComplete) {
     num1 = parseFloat(display.textContent);
     calculationComplete = false;
     currentValue = "";
+    consecutiveMinusCount = 0;
   }
 
   // Process the current input if available
@@ -191,6 +203,7 @@ function handleOperatorClick(op) {
   awaitingNegativeOperand = false;
   lastInputWasOperator = true;
   lastButtonWasEquals = false;
+  consecutiveMinusCount = 0; // Reset count after setting the operator
 }
 
 function resetForNextCalculation() {
