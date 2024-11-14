@@ -1,155 +1,199 @@
-// === Variables ===
+// Variables
 let num1;
 let operator;
 let num2;
 let currentValue = "";
+let lastInputWasOperator = false;
+let isDecimal = false;
+let calculationComplete = false;
+let awaitingNegativeOperand = false;
 
-// === Display Handling ===
+// Display Handling
 const display = document.getElementById("current");
 const historyDisplay = document.getElementById("history");
 
-// Function to update the main display (current value)
 function updateDisplay(value) {
-  display.textContent = value;
+  display.textContent =
+    typeof value === "number" ? parseFloat(value.toFixed(4)) : value;
 }
 
-// Function to update the history display (numbers and operators in grey)
 function updateHistory(value) {
-  const maxLength = 6; // Set maximum length for the history display
-  if (value.length > maxLength) {
-    value = "..." + value.slice(value.length - maxLength); // Truncate older entries
-  }
-  historyDisplay.textContent = value;
+  const maxLength = 20;
+  historyDisplay.textContent =
+    value.length > maxLength ? "..." + value.slice(-maxLength) : value;
 }
 
-// === Arithmetic Functions ===
+// Arithmetic Functions
 function add(a, b) {
   return a + b;
 }
-
 function subtract(a, b) {
   return a - b;
 }
-
 function multiply(a, b) {
   return a * b;
 }
-
 function divide(a, b) {
-  if (b === 0) return "Error: Division by zero";
-  return a / b;
+  return b === 0 ? "Cannot divide by zero" : a / b;
 }
 
-// Main function to perform operation based on the operator
 function operate(operator, num1, num2) {
+  let result;
   switch (operator) {
     case "+":
-      return add(num1, num2);
+      result = add(num1, num2);
+      break;
     case "-":
-      return subtract(num1, num2);
+      result = subtract(num1, num2);
+      break;
     case "*":
-      return multiply(num1, num2);
+      result = multiply(num1, num2);
+      break;
     case "/":
-      return divide(num1, num2);
+      result = divide(num1, num2);
+      break;
     default:
-      return "Error: Invalid operator";
+      return "Error";
   }
+  return typeof result === "number" ? parseFloat(result.toFixed(4)) : result;
 }
 
-// === Calculator Logic ===
-
-// Function to handle digit button clicks
+// Calculator Logic
 function handleDigitClick(digit) {
-  if (currentValue === "0") {
-    currentValue = ""; // Prevent "0" from showing initially
+  if (calculationComplete) {
+    resetForNextCalculation();
   }
+  if (awaitingNegativeOperand && digit === "-") {
+    currentValue = "-";
+    updateDisplay(currentValue);
+    updateHistory(historyDisplay.textContent + digit);
+    awaitingNegativeOperand = false;
+    lastInputWasOperator = false;
+    return;
+  }
+  if (currentValue === "0" && digit !== ".") currentValue = "";
+  if (digit === "." && isDecimal) return;
+  if (digit === ".") isDecimal = true;
+
   currentValue += digit;
   updateDisplay(currentValue);
-
-  // Only append to history if it is not the first entry
-  if (historyDisplay.textContent === "0" || historyDisplay.textContent === "") {
-    historyDisplay.textContent = digit; // Replace initial "0" with the first digit
-  } else {
-    historyDisplay.textContent += digit; // Append to history
-  }
+  updateHistory(historyDisplay.textContent + digit);
+  lastInputWasOperator = false;
 }
 
-// Function to handle operator button clicks
-// Function to handle operator button clicks
-function handleOperatorClick(op) {
-  // Case 1: If there's no number input yet, ignore operator click
-  if (currentValue === "" && num1 === undefined) return;
-
-  // Case 2: If we already have an operator and both num1 and num2, perform the operation
-  if (num1 !== undefined && operator && currentValue !== "") {
-    num2 = parseFloat(currentValue);
-    const result = operate(operator, num1, num2);
-    updateDisplay(result);
-
-    // Set the result as num1 for chaining operations
-    num1 = result;
-    currentValue = ""; // Clear currentValue for next input
-  } else if (num1 === undefined) {
-    // If num1 is not set, parse the currentValue as num1
-    num1 = parseFloat(currentValue);
-    currentValue = ""; // Clear currentValue for next input
-  }
-
-  // Set the new operator for the next calculation
-  operator = op;
-  updateHistory(`${historyDisplay.textContent} ${op} `);
-}
-
-// Function to handle equals button click
 function handleEqualsClick() {
   if (num1 !== undefined && operator && currentValue !== "") {
     num2 = parseFloat(currentValue);
-    const result = operate(operator, num1, num2);
-    updateDisplay(result);
+    let result = operate(operator, num1, num2);
 
-    // Store the result for the next calculation and reset only num2 and currentValue
+    if (typeof result === "string") {
+      updateDisplay(result);
+      resetForNextCalculation();
+      return;
+    }
+    updateDisplay(result);
+    updateHistory(`${historyDisplay.textContent} = ${result}`);
     num1 = result;
-    operator = undefined; // Reset operator for the next input
-    currentValue = ""; // Clear current value for the next input
+    operator = undefined;
+    currentValue = "";
+    num2 = undefined;
+    calculationComplete = true;
+  } else {
+    updateDisplay("Error");
+    resetForNextCalculation();
   }
+  lastInputWasOperator = false;
 }
 
-// Function to handle clear button click
+function handleOperatorClick(op) {
+  if (op === "-" && currentValue === "" && !num1) {
+    currentValue = "-";
+    updateDisplay(currentValue);
+    updateHistory(currentValue);
+    return;
+  }
+  if (lastInputWasOperator) {
+    if (op === "-" && currentValue === "") {
+      awaitingNegativeOperand = true;
+      handleDigitClick(op);
+    }
+    return;
+  }
+  if (calculationComplete) {
+    num1 = parseFloat(display.textContent);
+    calculationComplete = false;
+    currentValue = "";
+  }
+  if (num1 !== undefined && currentValue !== "") {
+    num2 = parseFloat(currentValue);
+    let result = operate(operator, num1, num2);
+
+    if (typeof result === "string") {
+      updateDisplay(result);
+      resetForNextCalculation();
+      return;
+    }
+    updateDisplay(result);
+    num1 = result;
+  } else if (currentValue !== "") {
+    num1 = parseFloat(currentValue);
+  }
+
+  operator = op;
+  currentValue = "";
+  isDecimal = false;
+  updateHistory(`${historyDisplay.textContent} ${op} `);
+  awaitingNegativeOperand = false;
+  lastInputWasOperator = true;
+}
+
+function resetForNextCalculation() {
+  currentValue = "";
+  operator = undefined;
+  isDecimal = false;
+  awaitingNegativeOperand = false;
+  calculationComplete = false;
+}
+
+// Reset Functionality
 function handleClearClick() {
   currentValue = "";
   num1 = undefined;
   num2 = undefined;
   operator = undefined;
+  isDecimal = false;
+  calculationComplete = false;
+  awaitingNegativeOperand = false;
   updateDisplay("0");
-  updateHistory(""); // Clear history display
+  updateHistory("");
 }
 
-// Function to handle delete button click
 function handleDeleteClick() {
-  // Remove the last character from the current value
-  currentValue = currentValue.slice(0, -1);
-
-  // If the current value becomes empty, set it to "0"
-  if (currentValue === "") {
-    currentValue = "0";
-  }
-
+  if (currentValue.slice(-1) === ".") isDecimal = false;
+  currentValue = currentValue.slice(0, -1) || "0";
   updateDisplay(currentValue);
-
-  // Update the history display
-  if (historyDisplay.textContent !== "0" && historyDisplay.textContent !== "") {
-    historyDisplay.textContent = historyDisplay.textContent.slice(0, -1);
-  }
+  historyDisplay.textContent = historyDisplay.textContent.slice(0, -1);
 }
 
-// Event listeners for all buttons
+// Event Listeners
 document.querySelectorAll(".btn").forEach((button) => {
   button.addEventListener("click", () => {
     const buttonText = button.textContent;
-
     if (buttonText >= "0" && buttonText <= "9") {
+      if (calculationComplete) {
+        handleClearClick();
+      }
+      handleDigitClick(buttonText);
+    } else if (buttonText === ".") {
+      if (calculationComplete) {
+        handleClearClick();
+      }
       handleDigitClick(buttonText);
     } else if (["+", "-", "*", "/"].includes(buttonText)) {
+      if (calculationComplete) {
+        calculationComplete = false;
+        num2 = parseFloat(currentValue);
+      }
       handleOperatorClick(buttonText);
     } else if (buttonText === "=") {
       handleEqualsClick();
@@ -163,18 +207,27 @@ document.querySelectorAll(".btn").forEach((button) => {
 
 document.addEventListener("keydown", (event) => {
   const key = event.key;
-
   if (key >= "0" && key <= "9") {
+    if (calculationComplete) {
+      handleClearClick();
+    }
+    handleDigitClick(key);
+  } else if (key === ".") {
+    if (calculationComplete) {
+      handleClearClick();
+    }
     handleDigitClick(key);
   } else if (["+", "-", "*", "/"].includes(key)) {
+    if (calculationComplete) {
+      calculationComplete = false;
+      num1 = parseFloat(currentValue);
+    }
     handleOperatorClick(key);
+  } else if (key === "Enter") {
+    handleEqualsClick();
   } else if (key === "Escape") {
     handleClearClick();
   } else if (key === "Backspace") {
     handleDeleteClick();
-  }
-
-  if (key === "Enter") {
-    handleEqualsClick();
   }
 });
