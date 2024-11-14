@@ -7,6 +7,7 @@ let lastInputWasOperator = false;
 let isDecimal = false;
 let calculationComplete = false;
 let awaitingNegativeOperand = false;
+let lastButtonWasEquals = false;
 
 // Display Handling
 const display = document.getElementById("current");
@@ -79,9 +80,14 @@ function handleDigitClick(digit) {
   updateDisplay(currentValue);
   updateHistory(historyDisplay.textContent + digit);
   lastInputWasOperator = false;
+  lastButtonWasEquals = false;
 }
 
 function handleEqualsClick() {
+  if (lastButtonWasEquals) {
+    handleClearClick();
+    return;
+  }
   if (num1 !== undefined && operator && currentValue !== "") {
     num2 = parseFloat(currentValue);
     let result = operate(operator, num1, num2);
@@ -103,6 +109,7 @@ function handleEqualsClick() {
     resetForNextCalculation();
   }
   lastInputWasOperator = false;
+  lastButtonWasEquals = true;
 }
 
 function handleOperatorClick(op) {
@@ -145,6 +152,7 @@ function handleOperatorClick(op) {
   updateHistory(`${historyDisplay.textContent} ${op} `);
   awaitingNegativeOperand = false;
   lastInputWasOperator = true;
+  lastButtonWasEquals = false;
 }
 
 function resetForNextCalculation() {
@@ -153,6 +161,7 @@ function resetForNextCalculation() {
   isDecimal = false;
   awaitingNegativeOperand = false;
   calculationComplete = false;
+  lastButtonWasEquals = false;
 }
 
 // Reset Functionality
@@ -166,6 +175,7 @@ function handleClearClick() {
   awaitingNegativeOperand = false;
   updateDisplay("0");
   updateHistory("");
+  lastButtonWasEquals = false;
 }
 
 function handleDeleteClick() {
