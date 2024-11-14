@@ -133,24 +133,41 @@ function handleEqualsClick() {
 }
 
 function handleOperatorClick(op) {
-  if (op === "-" && currentValue === "" && !num1) {
+  // If the input is a "-" and follows an operator (for negative numbers)
+  if (op === "-" && lastInputWasOperator && !currentValue) {
     currentValue = "-";
     updateDisplay(currentValue);
-    updateHistory(currentValue);
+    updateHistory(historyDisplay.textContent + op);
+    lastInputWasOperator = false;
     return;
   }
+
+  // Prevent entering more than two consecutive operators
   if (lastInputWasOperator) {
-    if (op === "-" && currentValue === "") {
-      awaitingNegativeOperand = true;
-      handleDigitClick(op);
+    // Allow one additional operator only if it's "-" and the previous one was * or /
+    if ((operator === "*" || operator === "/") && op === "-") {
+      currentValue = "-";
+      updateDisplay(currentValue);
+      updateHistory(historyDisplay.textContent + op);
+      lastInputWasOperator = false;
+      return;
+    } else {
+      // Replace the previous operator if more than two operators are attempted
+      operator = op;
+      historyDisplay.textContent =
+        historyDisplay.textContent.slice(0, -2) + ` ${op} `;
+      return;
     }
-    return;
   }
+
+  // Reset if calculation was completed
   if (calculationComplete) {
     num1 = parseFloat(display.textContent);
     calculationComplete = false;
     currentValue = "";
   }
+
+  // Process the current input if available
   if (num1 !== undefined && currentValue !== "") {
     num2 = parseFloat(currentValue);
     let result = operate(operator, num1, num2);
@@ -166,6 +183,7 @@ function handleOperatorClick(op) {
     num1 = parseFloat(currentValue);
   }
 
+  // Set up for the next operation
   operator = op;
   currentValue = "";
   isDecimal = false;
